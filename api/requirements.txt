@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+websocket_client
+requests
+requests_toolbelt
+openai
+python-docx
+python-multipart
