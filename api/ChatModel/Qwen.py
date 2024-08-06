@@ -19,16 +19,15 @@ def removeMark(text):
 # 基本对话
 def chat(messages:list,model: str = "qwen-long"):
     #temperature:float,top_p:float,
-    try:
-        completion = client.chat.completions.create(
-            messages=messages,
-            model=model
-            # temperature=temperature,
-            # top_p=top_p,
-        )
-        return removeMark(completion.choices[0].message.content)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+
+    completion = client.chat.completions.create(
+        messages=messages,
+        model=model
+        # temperature=temperature,
+        # top_p=top_p,
+    )
+    return removeMark(completion.choices[0].message.content)
+
         # return str(e)
 
 # -------- 文件 -------- 文件 -------- 文件 -------- 文件 -------- 文件 -------- 文件 -------- 文件 -------- 文件

@@ -1,7 +1,7 @@
 <template>
-    <el-container>
-        <el-main id="main">
-            <div id="content" ref="containerRef">
+    <el-container class="container">
+        <el-main id="content">
+            <div ref="containerRef" id="content-main">
                 <el-collapse v-model="activeNames">
                     <el-collapse-item class="collapse_item" id="upfile" name="upfile">
                         <template #title>
@@ -16,20 +16,14 @@
 
 
                     </el-collapse-item>
-
-
-
                     <generView v-for="generType in generNameList" :generType="generType" />
-
-
-
                 </el-collapse>
             </div>
-            <div>
+            <div id="content-progress">
                 <el-progress :percentage="progressValue" :indeterminate="progressRun" />
             </div>
         </el-main>
-        <el-aside width="200px" id="aside">
+        <el-aside width="220px" id="aside">
             <div id="asideContainer">
                 <div id="asideContent">
                     <el-anchor :container="containerRef" :offset="60" :bound="100" direction="vertical"
@@ -87,6 +81,10 @@ let tabsActiveName = ref('软著登记申请表')
 
 // 获取文件信息的本地缓存
 function getFileSession(fileType: string) {
+    // 如果已经有数据，就不用重复读
+    if (S.F[fileType].length != 0) {
+        return
+    }
     const Sfile = sessionStorage.getItem(fileType)
     if (Sfile) {
         let SfileJson = JSON.parse(Sfile)
@@ -159,6 +157,7 @@ async function clickGener() {
 
     // 判断文件是否齐全
     function isComplete() {
+        progressRun.value = true
         for (const key in S.F) {
             if (S.F[key].length === 0) {
                 ElMessage.error(key + "还未上传！")
@@ -167,7 +166,6 @@ async function clickGener() {
         }
         return true;
     }
-    progressRun.value = true
     // 确认文件齐全后
     if (isComplete()) {
         const tasks = await S.getGeners()
@@ -230,12 +228,45 @@ async function clickGenerDoc() {
 </script>
 
 <style scoped>
+/* 这是一整个区域 */
+.container {
+    /* 为什么不用100%-40px？ 我也不知道，反正就是这么神奇 */
+    height: 100%;
+}
+
+/* 布局里的main，默认有20padding，所以要去掉 */
+/* 这里的main包括了主要页面和进度条 */
+#content {
+    /* border-radius: 10px; */
+    padding: 0px;
+    box-shadow: 0 0 10px 2px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+/* 左边真正内容区域  */
+#content-main {
+    overflow-y: auto;
+    /* 此处减去的40px是进度条 */
+    height: calc(100% - 20px);
+    /* border: #529b2e solid 1px; */
+}
+
+/* 内容区域的进度条 */
+#content-progress {
+    height: 20px;
+    padding-left: 20px;
+    width: calc(100% - 20px);
+    /* padding-top: 5px; */
+    /* border: #529b2e solid 1px; */
+}
+
 /* 右边导航栏 */
 #aside {
-    padding: 20px 20px 20px 0px;
-    border-left: solid 2px #f5f5f5;
+    /* border-radius: 10px; */
+    margin-left: 20px;
     height: 100%;
-
+    box-shadow: 0 0 10px 2px rgba(0, 0, 0, 0.1);
+    background-color: white;
 }
 
 #asideContainer {
@@ -245,15 +276,17 @@ async function clickGenerDoc() {
 }
 
 #asideContent {
+    padding-right: 10px;
     flex-grow: 1;
 }
 
 #asideBottom {
-    align-self: flex-end;
+    padding: 5px 15px 15px 15px;
 }
 
 #asideBottom .el-button {
-    width: 160px;
+    width: 100%;
+    /* width: 160px; */
     margin-top: 10px;
 }
 
@@ -284,15 +317,7 @@ async function clickGenerDoc() {
     display: none;
 }
 
-#main {
-    padding: 20px 20px 0px 20px;
-}
 
-/* 左边真正内容区域  */
-#content {
-    overflow-y: auto;
-    height: calc(100% - 30px);
-}
 
 .titleIcon {
     margin-left: 10px;

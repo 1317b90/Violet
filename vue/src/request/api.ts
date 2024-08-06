@@ -36,3 +36,37 @@ export async function generDoc(generData: { [key: string]: string }) {
         data: generData
     })
 }
+
+
+// 研发活动情况表
+
+export async function generRDactive(fileList: Array<Object>) {
+    return service({
+        url: "RDactive",
+        method: "POST",
+        data: fileList
+    })
+}
+
+
+
+// 高新技术产品情况表
+export async function generHighTech(fileList: Array<Object>) {
+    return service({
+        url: "highTech",
+        method: "POST",
+        data: fileList
+    })
+}
+
+
+
+// 成果转化说明
+
+export async function generAchieve(fileList: Array<Object>) {
+    return service({
+        url: "achieve",
+        method: "POST",
+        data: fileList
+    })
+}

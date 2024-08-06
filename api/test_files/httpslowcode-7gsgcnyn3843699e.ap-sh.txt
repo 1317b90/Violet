@@ -1,0 +1,24 @@
+https://lowcode-7gsgcnyn3843699e.ap-shanghai.tcb-api.tencentcloudapi.com/weda/odata/v1/pre/ygxx_ct26fxv('')
+
+
+PERMISSION_DENIED
+
+INVALID_ACCESS_TOKEN
+
+
+websocket
+
+我的目录结构如下：
+chatModel
+--__init__.py
+--SparkApi.py
+main.py
+
+在ini.py中引用了SparkApi.py
+main.py中又引用了init的函数
+结果运行main.py的时候报错了：ModuleNotFoundError: No module named 'SparkApi'
+
+我应该如何调整，解决错误
+
+
+注意，单个用户最多只能上传 1000 个文件，单文件不超过 100MB，同时所有已上传的文件总和不超过 10G 容量。如果您要抽取更多文件，需要先删除一部分不再需要的文件。文件解析服务限时免费，请求高峰期平台可能会有限流策略。

@@ -1,68 +1,95 @@
 <template>
   <el-container>
-    <el-header id="header">
-      <el-menu :default-active="$route.fullPath" id="menu" mode="horizontal" background-color="#031629"
-        text-color="#fff" active-text-color="#fff" :router="true">
+    <el-header id="appHeader">
+      <el-menu id="appMenu" :default-active="$route.fullPath" mode="horizontal" :ellipsis="false"
+        background-color="#031629" text-color="#fff" active-text-color="#fff" :router="true">
         <el-menu-item>
-          <!-- <img src="@/assets/images/logo.png" style="height: 50px;" alt="Logo" class="logo-img"> -->
-          AI申请书系统
+          <img src="@/assets/images/logo_title.png" style="height: 50px;" alt="Logo" class="logo-img">
         </el-menu-item>
-        <!-- <el-menu-item index="/home">首页</el-menu-item> -->
+        <!-- <el-menu-item index="/">首页</el-menu-item> -->
+        <!-- <el-menu-item index="/file">文件管理</el-menu-item> -->
+        <el-menu-item index="/IP">知识产权</el-menu-item>
         <el-menu-item index="/itemSetup">立项报告</el-menu-item>
-        <!-- <el-menu-item index="test">测试</el-menu-item> -->
+        <el-menu-item index="/RDactivate">研发活动情况表</el-menu-item>
+        <el-menu-item index="/highTech">高新技术产品情况表</el-menu-item>
+        <el-menu-item index="/achieve">成果转化说明</el-menu-item>
+        <el-menu-item index="/innovative">企业创新能力评价</el-menu-item>
+        <el-menu-item index="/manage">研究开发组织管理水平</el-menu-item>
+        <div class="flex-grow" />
+
+        <el-sub-menu index="2" v-if="username">
+          <template #title><el-icon>
+              <User />
+            </el-icon></template>
+          <el-menu-item-group :title="username">
+            <el-menu-item index="/info">资料修改</el-menu-item>
+            <el-menu-item index="/login">退出</el-menu-item>
+          </el-menu-item-group>
+        </el-sub-menu>
+        <el-menu-item index="/login" v-else>登陆</el-menu-item>
 
       </el-menu>
     </el-header>
-    <el-main id="main">
-      <RouterView id="RouterView" />
+    <el-main id="appMain">
+      <RouterView />
     </el-main>
-    <el-footer id="footer"><el-text>滇ICP备2024033664号</el-text></el-footer>
+    <el-footer id="appFooter"><el-text>滇ICP备2024033664号</el-text></el-footer>
   </el-container>
 
 
 </template>
 
 <script setup lang="ts">
-
-
+import { User } from '@element-plus/icons-vue'
 import { RouterLink, RouterView } from 'vue-router'
+const username = sessionStorage.getItem('username')
+
+
 </script>
 
 <style scoped>
-#header {
+#appHeader {
   padding: 0px;
 }
 
-#main {
-  padding: 30px 30px 0px 30px;
-  height: calc(100vh - 60px - 40px);
+#appMain {
+  padding: 20px 20px 0px 20px;
+  /*整个页面高度-导航栏（60）-底部备案（30）*/
+  height: calc(100vh - 60px - 30px);
+  width: 100vw;
+
+  /* 装修线 */
+  /* border: solid 1px red; */
 }
 
-#menu li {
+#appMenu {
+  width: 100%;
+}
+
+#appMenu li {
   font-size: 16px;
-  letter-spacing: 2px;
+  /* letter-spacing: 2px; */
 }
 
-#menu .is-active {
+#appMenu .is-active {
   background-color: #317cff;
   color: white;
   border-bottom-color: #317cff;
 }
 
-#RouterView {
-  background-color: white;
-  height: 100%;
-  /* height: calc(100vh - 60px - 40px - 50px); */
-  width: 100%;
-  /* padding: 20px; */
-}
 
-#footer {
+#appFooter {
   padding: 0px;
-  height: 40px;
+  height: 30px;
   text-align: center;
   display: flex;
   justify-content: center;
   align-items: center;
+  /* border: solid red 1px; */
+}
+
+/* 让用户编辑在最右边 */
+.flex-grow {
+  flex-grow: 1;
 }
 </style>

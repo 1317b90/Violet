@@ -1,10 +1,10 @@
 import axios from "axios";
-//创建axios实例
+import urlJson from '@/request/url.json';
 
-// 本地调试：http://127.0.0.1:8000/
-// 服务器地址：http://www.oliven.top:800
+
+//创建axios实例
 const service = axios.create({
-	baseURL: "http://www.oliven.top:800",
+	baseURL: urlJson.local,
 	timeout: 600000,//超时时间 60秒
 })
 

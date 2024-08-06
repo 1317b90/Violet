@@ -18,6 +18,7 @@
 import { ref } from 'vue'
 import { UploadFilled } from '@element-plus/icons-vue'
 import type { UploadProps, UploadUserFile } from 'element-plus'
+import urlJson from '@/request/url.json';
 
 const propsData = defineProps(['upType'])
 const upType = propsData.upType
@@ -32,7 +33,7 @@ const S = useItemSetupS()
 // 公司基本资料：base
 
 // 一般都使用千问
-let actionUrl = ref("http://www.oliven.top:800/qwenUpFile")
+let actionUrl = ref(urlJson.local+"/qwenUpFile")
 
 let isHand = ref(false)
 
