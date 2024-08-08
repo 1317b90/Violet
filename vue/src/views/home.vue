@@ -1,6 +1,6 @@
 <template>
     <div class="content">
-        <img src="@/assets/images/fix.jpg" style="height: 250px;">
+        <img src="@/assets/images/jett.png" style="height: 250px;">
     </div>
 
 </template>
@@ -10,17 +10,10 @@
 
 <style scoped>
 .content {
-    padding: 20px;
-    /*
-    原始高度减去padding * 2
-     */
-    height: calc(100% - 40px);
-    /* border: solid 1px red; */
-    background-color: white;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#nei {
-    border: solid 1px red;
-    height: 300px;
-}
 </style>

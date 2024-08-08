@@ -3,7 +3,7 @@
     <el-header id="appHeader">
       <el-menu id="appMenu" :default-active="$route.fullPath" mode="horizontal" :ellipsis="false"
         background-color="#031629" text-color="#fff" active-text-color="#fff" :router="true">
-        <el-menu-item>
+        <el-menu-item index="/">
           <img src="@/assets/images/logo_title.png" style="height: 50px;" alt="Logo" class="logo-img">
         </el-menu-item>
         <!-- <el-menu-item index="/">首页</el-menu-item> -->

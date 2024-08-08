@@ -1,37 +1,32 @@
 <template>
-    <el-tab-pane :label="upType" :name="upType">
-        <el-upload v-model:file-list="S.F[upType]" :action="actionUrl" drag multiple
-            :on-success="handleSuccess" :on-error="handleError" :on-preview="handlePreview" :on-remove="handleRemove"
-            :before-remove="beforeRemove" :limit="5" :on-exceed="handleExceed">
-            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-            <div class="el-upload__text">
-                将文件拖拽到这里 或者 <em>点击上传</em>
-                <br>
-                文件格式支持(doc docx pdf txt md)，可上传多文件，单个文件最大30MB。
-            </div>
-        </el-upload>
-    </el-tab-pane>
+
+    <el-upload v-model:file-list="S.F[upType]" :action="actionUrl" drag multiple :on-success="handleSuccess"
+        :on-error="handleError" :on-preview="handlePreview" :on-remove="handleRemove" :before-remove="beforeRemove"
+        :on-exceed="handleExceed">
+        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+        <div class="el-upload__text">
+            将文件拖拽到这里 或者 <em>点击上传</em>
+            <br>
+            文件格式支持(doc docx pdf txt md)，可上传多文件，单个文件最大30MB。
+        </div>
+    </el-upload>
+
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { UploadFilled } from '@element-plus/icons-vue'
 import type { UploadProps, UploadUserFile } from 'element-plus'
+import urlJson from '@/request/url.json';
 
 const propsData = defineProps(['upType'])
 const upType = propsData.upType
 
-import { useItemSetupS } from '@/stores/itemSetupS'
-const S = useItemSetupS()
+import { useIP } from '@/stores/IP'
+const S = useIP()
 
-// 软著登记申请表：soft
-// 项目使用手册：hand
-// 项目代码：code
-// 公司基本资料：base
+// 用kimi吧救命
+let actionUrl = ref(urlJson.url + "/kimiUpFile")
 
-// 一般都使用千问
-let actionUrl = ref("http://www.oliven.top:800/qwenUpFile")
-
-let isHand = ref(false)
 
 // 在上传之前的钩子，返回 false 可以取消上传
 function beforeUpload(file: any) {
@@ -40,8 +35,6 @@ function beforeUpload(file: any) {
 
 // 文件上传成功的回调
 function handleSuccess(response: any) {
-    // 存储数据
-    sessionStorage.setItem(upType, JSON.stringify(S.F[upType]))
     const lastFileName = S.F[upType][S.F[upType].length - 1].name;
     ElNotification({
         title: '文件上传成功',
@@ -54,7 +47,6 @@ function handleSuccess(response: any) {
 function handleError(error: string) {
     ElMessage.error(
         "文件上传失败，请重试！"
-        // error
     )
     console.log(error)
 }
@@ -62,7 +54,7 @@ function handleError(error: string) {
 // 在文件列表中点击删除
 const handleRemove: UploadProps['onRemove'] = (file, uploadFiles) => {
     // 存储一次更新后的uploadFiles
-    sessionStorage.setItem(upType, JSON.stringify(S.F[upType]))
+    console.log("我被删了呜呜呜")
 }
 
 // 点击了文件列表

@@ -5,8 +5,8 @@ import type { UploadUserFile } from 'element-plus'
 
 export const useachieve = defineStore('achieve', () => {
   const F: { [key: string]: UploadUserFile[] } = reactive({
-    "项目操作使用手册 ": [],
-    "产品采购合同": [],
+    "知识产权资料   ": [],
+    "产品销售合同": [],
   })
 
 

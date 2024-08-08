@@ -2,7 +2,7 @@
     <el-tab-pane :label="upType" :name="upType">
         <el-upload v-model:file-list="S.F[upType]" :action="actionUrl" drag multiple :on-success="handleSuccess"
             :on-error="handleError" :on-preview="handlePreview" :on-remove="handleRemove" :before-remove="beforeRemove"
-            :limit="5" :on-exceed="handleExceed">
+            :on-exceed="handleExceed">
             <el-icon class="el-icon--upload"><upload-filled /></el-icon>
             <div class="el-upload__text">
                 将文件拖拽到这里 或者 <em>点击上传</em>
@@ -27,7 +27,7 @@ const S = usehighTech()
 
 
 // 千问会报错，所以。。。
-let actionUrl = ref(urlJson.local + "/kimiUpFile")
+let actionUrl = ref(urlJson.url + "/kimiUpFile")
 
 
 // 在上传之前的钩子，返回 false 可以取消上传

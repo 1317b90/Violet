@@ -1,8 +1,9 @@
 <template>
     <el-tab-pane :label="upType" :name="upType">
-        <el-upload v-model:file-list="S.F[upType]" :action="actionUrl" drag multiple
+        <el-switch v-if="upType == '公司基本资料'" v-model="isHand" class="mb-2" active-text="手动填写" inactive-text="通过文件上传" />
+        <el-upload v-if="!isHand" v-model:file-list="S.F[upType]" :action="actionUrl" drag multiple
             :on-success="handleSuccess" :on-error="handleError" :on-preview="handlePreview" :on-remove="handleRemove"
-            :before-remove="beforeRemove" :limit="5" :on-exceed="handleExceed">
+            :before-remove="beforeRemove" :on-exceed="handleExceed">
             <el-icon class="el-icon--upload"><upload-filled /></el-icon>
             <div class="el-upload__text">
                 将文件拖拽到这里 或者 <em>点击上传</em>
@@ -10,18 +11,21 @@
                 文件格式支持(doc docx pdf txt md)，可上传多文件，单个文件最大30MB。
             </div>
         </el-upload>
+        <companyForm v-else />
     </el-tab-pane>
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { UploadFilled } from '@element-plus/icons-vue'
 import type { UploadProps, UploadUserFile } from 'element-plus'
+import urlJson from '@/request/url.json';
 
 const propsData = defineProps(['upType'])
 const upType = propsData.upType
+import companyForm from './companyForm.vue'
 
-import { useItemSetupS } from '@/stores/itemSetupS'
-const S = useItemSetupS()
+import { useinnovative } from '@/stores/innovative'
+const S = useinnovative()
 
 // 软著登记申请表：soft
 // 项目使用手册：hand
@@ -29,7 +33,7 @@ const S = useItemSetupS()
 // 公司基本资料：base
 
 // 一般都使用千问
-let actionUrl = ref("http://www.oliven.top:800/qwenUpFile")
+let actionUrl = ref(urlJson.url + "/kimiUpFile")
 
 let isHand = ref(false)
 

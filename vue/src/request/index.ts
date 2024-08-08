@@ -4,7 +4,8 @@ import urlJson from '@/request/url.json';
 
 //创建axios实例
 const service = axios.create({
-	baseURL: urlJson.local,
+	baseURL: urlJson.url,
+	// baseURL: urlJson.local,
 	timeout: 600000,//超时时间 60秒
 })
 

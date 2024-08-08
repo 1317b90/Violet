@@ -76,7 +76,7 @@ const fileNameList = Object.keys(S.F)
 
 // 上传tabs的默认
 
-let tabsActiveName = ref('软著登记申请表')
+let tabsActiveName = ref(fileNameList[0])
 
 
 // 获取文件信息的本地缓存

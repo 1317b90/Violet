@@ -8,12 +8,11 @@
         </template>
         <div v-if="S.C[generType]" class="contentDiv">
             <el-input v-model="S.C[generType]" :autosize="{ minRows: 3 }" type="textarea" show-word-limit
-                placeholder="Please input" />
+                :maxlength="400" placeholder="Please input" @change="onSave" />
 
             <div class="bottomDiv">
-                <el-button type="primary" class="saveButton" @click="clickSave">保存</el-button>
-                <el-button @click="clickGener" :loading="isLoading">重新生成</el-button>
-                <el-button @click="onCopy">复制</el-button>
+                <el-button type="primary" round @click="clickGener" :loading="isLoading">重新生成</el-button>
+                <el-button type="success" :icon="DocumentCopy" circle @click="onCopy" />
             </div>
 
         </div>
@@ -26,12 +25,13 @@
 import { ref } from 'vue'
 
 import { SuccessFilled } from '@element-plus/icons-vue'
+import { DocumentCopy } from '@element-plus/icons-vue'
 
 import useClipboard from "vue-clipboard3";
 const { toClipboard } = useClipboard();
 
-import { useItemSetupS } from '@/stores/itemSetupS'
-const S = useItemSetupS()
+import { useinnovative } from '@/stores/innovative'
+const S = useinnovative()
 
 
 const propsData = defineProps(['generType'])
@@ -49,16 +49,9 @@ async function clickGener() {
     isLoading.value = false
 }
 
-
-// 点击保存后
-function clickSave() {
-    try {
-        sessionStorage.setItem(generType, S.C[generType])
-        ElMessage.success("保存成功！")
-    }
-    catch {
-        ElMessage.error("保存失败！")
-    }
+// 内容修改后自动保存
+function onSave() {
+    sessionStorage.setItem(generType, S.C[generType])
 }
 
 // 点击复制后

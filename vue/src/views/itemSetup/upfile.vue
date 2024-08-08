@@ -3,7 +3,7 @@
         <el-switch v-if="upType == '公司基本资料'" v-model="isHand" class="mb-2" active-text="手动填写" inactive-text="通过文件上传" />
         <el-upload v-if="!isHand" v-model:file-list="S.F[upType]" :action="actionUrl" drag multiple
             :on-success="handleSuccess" :on-error="handleError" :on-preview="handlePreview" :on-remove="handleRemove"
-            :before-remove="beforeRemove" :limit="5" :on-exceed="handleExceed">
+            :before-remove="beforeRemove" :on-exceed="handleExceed">
             <el-icon class="el-icon--upload"><upload-filled /></el-icon>
             <div class="el-upload__text">
                 将文件拖拽到这里 或者 <em>点击上传</em>
@@ -33,7 +33,7 @@ const S = useItemSetupS()
 // 公司基本资料：base
 
 // 一般都使用千问
-let actionUrl = ref(urlJson.local+"/qwenUpFile")
+let actionUrl = ref(urlJson.url +"/qwenUpFile")
 
 let isHand = ref(false)
 

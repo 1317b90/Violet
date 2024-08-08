@@ -1,0 +1,57 @@
+# 使用提醒:
+# 1. xbot包提供软件自动化、数据表格、Excel、日志、AI等功能
+# 2. package包提供访问当前应用数据的功能，如获取元素、访问全局变量、获取资源文件等功能
+# 3. 当此模块作为流程独立运行时执行main函数
+# 4. 可视化流程中可以通过"调用模块"的指令使用此模块
+
+import xbot
+from xbot import print, sleep
+from .import package
+from .package import variables as glv
+import xbot
+import xbot_visual
+import time
+from fastapi import FastAPI
+import uvicorn
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
+
+@app.get("/taxAuthInfoVerification")
+def taxAuthInfoVerification(uscid:str,username:str,password:str):
+    try:
+        web_page = xbot_visual.web.create(web_type="cef", value="https://tpass.guangdong.chinatax.gov.cn:8443/#/login?redirect_uri=https%3A%2F%2Fetax.guangdong.chinatax.gov.cn%3A8443%2Fmhzx%2Fapi%2Fmh%2Ftpass%2Fcode&client_id=c5djdncfa7nj4n2cajna2j68cndbj2fc&response_type=code&state=b9bb7f58e6354fbba76a4f1784539c1c", silent_running=False, wait_load_completed=True, load_timeout="20", stop_load_if_load_timeout="handleExcept", chrome_file_name=None, edge_file_name=None, ie_file_name=None, bro360_file_name=None, firefox_file_name=None, arguments=None, _block=("电税局账号识别", 1, "打开网页"))
+        for _xbot_retry_time in range(4):
+            try:
+                web_page2 = xbot_visual.web.get(web_type="cef", mode="activated", value="", use_wildcard=False, silent_running=False, wait_load_completed=True, load_timeout="20", stop_load_if_load_timeout="handleExcept", open_page=False, url=None, _block=("电税局账号识别", 5, "获取已打开的网页对象"))
+                break
+            except Exception as e:
+                if _xbot_retry_time == 3:
+                    raise e
+                else:
+                    xbot_visual.programing.log(type='info',text=e,_block=("电税局账号识别", 5,"获取已打开的网页对象"))
+            time.sleep(3)
+        web_wait_result = xbot_visual.web.element.wait(browser=web_page2, element=package.selector("用户名输入框"), state="appear", iswait=True, timeout="20", _block=("电税局账号识别", 6, "等待元素(web)"))
+        xbot_visual.web.element.input(browser=web_page2, element=package.selector("工商局税号"), text=uscid, append=False, simulate=True, driver_input=False, save_to_clipboard=False, input_type="simulate", contains_hotkey=False, force_ime_ENG=False, send_key_delay="50", focus_timeout="1000", delay_after="1", click_before_input=True, anchor_type="center", sudoku_part="MiddleCenter", offset_x="0", offset_y="0", timeout="20", _block=("电税局账号识别", 7, "填写输入框(web)"))
+        xbot_visual.win32.click_mouse(is_move_mouse_before_click=True, point_x="1022", point_y="422", relative_to="screen", move_speed="middle", button="left", click_type="click", hardware_driver_click=False, keys="null", delay_after="1", _block=("电税局账号识别", 8, "鼠标点击"))
+        xbot_visual.web.element.input(browser=web_page2, element=package.selector("输入框_el-input__inner_1"), text=username, append=False, simulate=True, driver_input=False, save_to_clipboard=False, input_type="simulate", contains_hotkey=False, force_ime_ENG=False, send_key_delay="50", focus_timeout="1000", delay_after="1", click_before_input=True, anchor_type="center", sudoku_part="MiddleCenter", offset_x="0", offset_y="0", timeout="20", _block=("电税局账号识别", 9, "填写输入框(web)"))
+        xbot_visual.web.element.input(browser=web_page2, element=package.selector("密码框"), text=password, append=False, simulate=True, driver_input=False, save_to_clipboard=False, input_type="simulate", contains_hotkey=False, force_ime_ENG=False, send_key_delay="50", focus_timeout="1000", delay_after="1", click_before_input=True, anchor_type="center", sudoku_part="MiddleCenter", offset_x="0", offset_y="0", timeout="20", _block=("电税局账号识别", 10, "填写输入框(web)"))
+        xbot_visual.web.element.drag_to(browser=web_page2, element=package.selector("块元素_1"), drag_way="default", target_element=None, left="1324", top="547", delay_after="1", anchor_type="center", sudoku_part="MiddleCenter", offset_x="0", offset_y="0", move_speed="middle", release_anchor_type="center", release_sudoku_part="MiddleCenter", release_offset_x="0", release_offset_y="0", timeout="20", _block=("电税局账号识别", 11, "拖拽元素(web)"))
+        xbot_visual.web.element.click(browser=web_page2, element=package.selector("登录_2"), simulate=True, move_mouse=False, clicks="click", button="left", keys="null", delay_after="1", anchor_type="center", sudoku_part="MiddleCenter", offset_x="0", offset_y="0", timeout="20", _block=("电税局账号识别", 12, "点击元素(web)"))
+        if xbot_visual.image.exist(window_kind="screen", window="", exist_mode="exist", template_images=[package.image_selector("图像23")], is_find_all_images=False, _block=("电税局账号识别", 13, "IF 图像存在")):
+            return True
+        else:
+            return False
+        #endif
+    finally:
+        pass
+
+def main(args):
+    uvicorn.run(app, host="127.0.0.1", port=8000)
+    pass
+
+
+
