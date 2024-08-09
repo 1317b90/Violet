@@ -21,8 +21,7 @@
         </div>
 
         <div v-if="generContent" class="contentDiv">
-            <el-input v-model="generContent" :autosize="{ minRows: 3 }" type="textarea" show-word-limit
-                :maxlength="1000" placeholder="Please input" />
+            <el-input v-model="generContent" :autosize="{ minRows: 3 }" type="textarea"  placeholder="Please input" />
 
             <div class="bottomDiv">
 
@@ -57,8 +56,6 @@ const generType = "研发活动专利关联表"
 
 
 let isLoading = ref(false)
-
-
 
 // 生成内容
 async function getGener() {

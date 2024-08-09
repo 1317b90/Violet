@@ -10,9 +10,9 @@ const router = createRouter({
       component: homeView
     },
     {
-      path: '/file',
-      name: 'file',
-      component: () => import('../views/file/index.vue')
+      path: '/item',
+      name: 'item',
+      component: () => import('../views/item/index.vue')
     },
     {
       path: '/IP',
@@ -20,9 +20,9 @@ const router = createRouter({
       component: () => import('../views/IP/index.vue')
     },
     {
-      path: '/itemSetup',
-      name: 'itemSetup',
-      component: () => import('../views/itemSetup/index.vue')
+      path: '/setup',
+      name: 'setup',
+      component: () => import('../views/setup/index.vue')
     },
     {
       path: '/RDactivate',

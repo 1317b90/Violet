@@ -1,9 +1,8 @@
 <template>
-    <el-tab-pane :label="upType" :name="upType">
-        <el-switch v-if="upType == '公司基本资料'" v-model="isHand" class="mb-2" active-text="手动填写" inactive-text="通过文件上传" />
-        <el-upload v-if="!isHand" v-model:file-list="S.F[upType]" :action="actionUrl" drag multiple
-            :on-success="handleSuccess" :on-error="handleError" :on-preview="handlePreview" :on-remove="handleRemove"
-            :before-remove="beforeRemove" :on-exceed="handleExceed">
+    <el-tab-pane v-if="upType != '公司基本资料'" :label="upType" :name="upType">
+        <el-upload v-model:file-list="S.F[upType]" :action="actionUrl" drag multiple :on-success="handleSuccess"
+            :on-error="handleError" :on-preview="handlePreview" :on-remove="handleRemove" :before-remove="beforeRemove"
+            :on-exceed="handleExceed">
             <el-icon class="el-icon--upload"><upload-filled /></el-icon>
             <div class="el-upload__text">
                 将文件拖拽到这里 或者 <em>点击上传</em>
@@ -11,7 +10,6 @@
                 文件格式支持(doc docx pdf txt md)，可上传多文件，单个文件最大30MB。
             </div>
         </el-upload>
-        <companyForm v-else />
     </el-tab-pane>
 </template>
 <script lang="ts" setup>
@@ -22,7 +20,6 @@ import urlJson from '@/request/url.json';
 
 const propsData = defineProps(['upType'])
 const upType = propsData.upType
-import companyForm from './companyForm.vue'
 
 import { useinnovative } from '@/stores/innovative'
 const S = useinnovative()
@@ -34,8 +31,6 @@ const S = useinnovative()
 
 // 一般都使用千问
 let actionUrl = ref(urlJson.url + "/kimiUpFile")
-
-let isHand = ref(false)
 
 // 在上传之前的钩子，返回 false 可以取消上传
 function beforeUpload(file: any) {

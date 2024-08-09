@@ -3,13 +3,13 @@
     <el-header id="appHeader">
       <el-menu id="appMenu" :default-active="$route.fullPath" mode="horizontal" :ellipsis="false"
         background-color="#031629" text-color="#fff" active-text-color="#fff" :router="true">
-        <el-menu-item index="/">
+        <el-menu-item >
           <img src="@/assets/images/logo_title.png" style="height: 50px;" alt="Logo" class="logo-img">
         </el-menu-item>
         <!-- <el-menu-item index="/">首页</el-menu-item> -->
-        <!-- <el-menu-item index="/file">文件管理</el-menu-item> -->
+        <el-menu-item index="/item">公司基本资料</el-menu-item>
         <el-menu-item index="/IP">知识产权</el-menu-item>
-        <el-menu-item index="/itemSetup">立项报告</el-menu-item>
+        <el-menu-item index="/setup">立项报告</el-menu-item>
         <el-menu-item index="/RDactivate">研发活动情况表</el-menu-item>
         <el-menu-item index="/highTech">高新技术产品情况表</el-menu-item>
         <el-menu-item index="/achieve">成果转化说明</el-menu-item>

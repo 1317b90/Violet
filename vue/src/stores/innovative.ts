@@ -18,9 +18,10 @@ export const useinnovative = defineStore('innovative', () => {
   const F: { [key: string]: UploadUserFile[] } = reactive({
     "知识产权资料   ": [],
     "成果转化材料": [],
-    "公司基本资料": [],
     "人员情况说明": [],
-    "管理制度文件": []
+    "管理制度文件": [],
+    "公司基本资料": []
+
   })
 
   // 内容数据
@@ -29,14 +30,6 @@ export const useinnovative = defineStore('innovative', () => {
     "研究开发与技术创新管理组织情况": "",
     "科技成果转化情况": "",
     "管理与科技人员": "",
-  })
-
-  // 表单数据
-  const companyForm: { [key: string]: string } = reactive({
-    creationTime: '',
-    registeredCapital: '',
-    businessScope: '',
-    intro: ''
   })
 
 
@@ -91,5 +84,5 @@ export const useinnovative = defineStore('innovative', () => {
   }
 
 
-  return { F, C, companyForm, getGener, getGeners }
+  return { F, C, getGener, getGeners }
 })

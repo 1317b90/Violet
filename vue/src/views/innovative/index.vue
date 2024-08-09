@@ -111,17 +111,22 @@ function getSession() {
         getGenerSession(generName)
     }
 
-    // 公司表单
-    const ScompanyForm = sessionStorage.getItem('companyForm')
-    if (ScompanyForm) {
-        let ScompanyFormJson = JSON.parse(ScompanyForm)
-        Object.keys(ScompanyFormJson).forEach(key => {
-            S.companyForm[key] = ScompanyFormJson[key]
-        });
-    }
 }
 
 getSession()
+
+// 清空缓存
+function clearSession() {
+    for (const fileName of fileNameList) {
+        if (fileName != "公司基本资料") {
+            sessionStorage.removeItem(fileName)
+        }
+    }
+    for (const generName of generNameList) {
+        sessionStorage.removeItem(generName)
+    }
+    window.location.reload()
+}
 
 
 const isUpIcon = ref(false)
@@ -183,8 +188,7 @@ async function clickGener() {
 
 // 点击一键清空后
 function clickClear() {
-    sessionStorage.clear()
-    window.location.reload()
+    clearSession()
 }
 
 
