@@ -1,12 +1,21 @@
-import json
-import shutil
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request
+
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request,Depends
 from fastapi.responses import JSONResponse
-from docx import Document
-from ChatModel import Spark,Kimi,Qwen
-from SqlService import Schemas
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.encoders import jsonable_encoder
+
+from sqlalchemy.orm import Session
+from SQLService import Crud, Schemas
+from SQLService.Conn import SessionLocal
+
+from ChatModel import Spark,Kimi,Qwen
+
+import json
+import shutil
+import datetime
+
+from docx import Document
 
 """
                _oo0oo_
@@ -30,8 +39,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-       菩提本无树    明镜亦非台
-       本来无BUG    何必常修改
+    佛祖保佑 没有BUG
 """
 
 
@@ -47,9 +55,97 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# 增加记录
+def addLog(request,type,input,output,state,db):
+    log_dict={
+        "username":request.headers.get("Authorization"),
+        "type":type,
+        "input": jsonable_encoder(input),
+        "output":output,
+        "state":state,
+        "time":datetime.datetime.now()
+    }
+    Crud.addLogr(db,log_dict)
+
+# -------- 用户表 -------- 用户表 -------- 用户表 -------- 用户表 -------- 用户表 -------- 用户表 -------- 用户表 -------- 用户表
+@app.post("/login", tags=["用户表"], summary="登录")
+def login(data: Schemas.LoginUser, db: Session = Depends(get_db)):
+    user = Crud.getUser(db, data.username)
+    if user is None:
+        raise HTTPException(status_code=404, detail="用户不存在！")
+    else:
+        if user.password != data.password:
+            raise HTTPException(status_code=401, detail="账号或密码错误!")
+        else:
+            return user
+
+# ---------- 项目表 ---------- 项目表 ---------- 项目表 ---------- 项目表 ---------- 项目表 ---------- 项目表 ---------- 项目表
+
+# 创建项目
+@app.get("/addItem", tags=["项目表"], summary="创建项目")
+def addItem(username:str, db: Session = Depends(get_db)):
+    user = Crud.getUser(db, username)
+    if user is None:
+        raise HTTPException(status_code=404, detail="用户不存在！")
+    else:
+        return Crud.addItem(db,username)
+
+# 根据id查询项目
+@app.get("/getItem", tags=["查询项目"], summary="项目表")
+def getItem(id:int, db: Session = Depends(get_db)):
+    item = Crud.getItem(db, id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="项目不存在！")
+    else:
+        return item
+
+# 查询指定用户的所有项目
+@app.get("/getItems_by_user", tags=["查询指定用户的所有项目"], summary="项目表")
+def getItems_by_user(username:str, db: Session = Depends(get_db)):
+    user = Crud.getUser(db, username)
+    if user is None:
+        raise HTTPException(status_code=404, detail="用户不存在！")
+    else:
+        return Crud.getItems_by_user(db,username)
+
+# 修改项目公司基本资料
+@app.post("/setItemCompany", tags=["修改公司基本资料"], summary="项目表")
+def setItemCompany(data:Schemas.ItemCompany, db: Session = Depends(get_db)):
+    print(data.model_dump())
+    item = Crud.getItem(db, data.id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="项目不存在！")
+    else:
+        return Crud.setItemCompany(db,data)
+# 修改项目名称
+@app.get("/setItemName", tags=["修改项目名称"], summary="项目表")
+def setItemName(id:int,name:str, db: Session = Depends(get_db)):
+    item = Crud.getItem(db,id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="项目不存在！")
+    else:
+        return Crud.setItemName(db,id,name)
+
+# 删除项目
+@app.get("/delItem", tags=["删除项目"], summary="项目表")
+def delItem(id:int, db: Session = Depends(get_db)):
+    item = Crud.getItem(db, id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="项目不存在！")
+    else:
+        return Crud.delItem(db,id)
+
 # --------- 知识产权 --------- 知识产权 --------- 知识产权 --------- 知识产权 --------- 知识产权 --------- 知识产权 --------- 知识产权
 @app.post("/IPadvanced", summary='先进性说明', tags=['知识产权'])
-def IPadvanced(fileList:list[Schemas.FileListModel]):
+def IPadvanced(fileList:list[Schemas.FileListModel],request: Request, db: Session = Depends(get_db)):
 
     messages = [
         {"role": "system",
@@ -71,66 +167,30 @@ def IPadvanced(fileList:list[Schemas.FileListModel]):
          "content": f"""
 根据文档内容，生成以下内容，400字以内：
 -输出知识产权的先进核心关键技术特点，分点描述，总结出文档中的具体的关键技术实现并详细描述，不要列举功能，要体现功能背后的技术，不要超过5点，以“本知识产权”为开头
-
+-结合企业简介输出内容该知识产权对本企业主营产品（服务）核心技术的支持作用说明，不要分点描述，生成文本一段式，不出现具体的公司名称，以“公司”代替
              """}
 # 结合企业简介输出内容该知识产权对本企业主营产品（服务）核心技术的支持作用说明，不要分点描述，生成文本一段式，不出现具体的公司名称，以“公司”代替
     )
     try:
-        return Qwen.chat(messages)
+        response = Qwen.chat(messages)
+        addLog(request, __name__, fileList, response, True, db)
+        return response
     except Exception as e:
+        addLog(request, __name__, fileList, str(e), False, db)
         raise HTTPException(status_code=400, detail=str(e))
 
-# IP RD关联表
-@app.post("/IPRD", summary='IP RD关联表', tags=['知识产权'])
-def IPRD(fileList:list[Schemas.FileListModel]):
-    messages = [
-        {"role": "system",
-         "content": f"""
-    #Role
-    - 你是一名专业的高新技术材料撰写员，十分了解企业进行高新技术认定申请的材料撰写技巧，擅长帮企业做知识产权和研发项目的梳理以及匹配
-    ## Language
-    - 中文
-                 """}
-    ]
-
-    for item in fileList:
-        messages.append({
-            "role": "system",
-            "content": kimiAnalyFile(item.response),
-        }
-    )
-
-    messages.append(
-        {"role": "user",
-         "content": f"""
-## Workflow:
-- 从用户上传的文档中获取知识产权的名称
-- 分析知识产权名称的关键词，并把有关联性的归为一类研发活动，并编写相应的研发活动名称
-- 输出编写的研发活动名称和对应的知识产权名称
-- 以表格的形式按【研发活动名称-关联知识产权名称】输出
-
-## Rules:
-- 每个知识产权只能关联一个研发活动，但一个研发活动可以关联多个知识产权。
-- 依据知识产权名称撰写研发活动名称，要符合要求且不能重复
-- 直接输出最后的表格结果，不要其他文字内容
-             """}
-    )
-
-    try:
-        return Qwen.chat(messages)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
 
 # -------- 立项报告 -------- 立项报告 -------- 立项报告 -------- 立项报告 -------- 立项报告 -------- 立项报告 -------- 立项报告 -------- 立项报告
 
 @app.post("/itemSetup", summary='立项报告', tags=['立项报告'])
-def itemSetup(data:Schemas.itemSetupParams):
+def itemSetup(data:Schemas.itemSetupParams,request: Request, db: Session = Depends(get_db)):
     messages = []
 
     for item in data.fileList:
         messages.append({
             "role": "system",
-            "content": f'fileid://{item.response}',
+            # "content": f'fileid://{item.response}',
+            "content": kimiAnalyFile(item.response),
         }
     )
 
@@ -164,12 +224,18 @@ def itemSetup(data:Schemas.itemSetupParams):
      "content": promptJson[data.generType]}
     )
 
-    return Qwen.chat(messages)
+    try:
+        response = Qwen.chat(messages)
+        addLog(request, "立项报告", data.fileList, response, True, db)
+        return response
+    except Exception as e:
+        addLog(request, "立项报告", data.fileList, str(e), False, db)
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # 生成立项报告文档
-@app.post("/generDoc", summary='效益与风险分析', tags=['立项报告'])
-def generDoc(data: Schemas.GenerModel,request: Request):
+@app.post("/generDoc", summary='生成立项报告文档', tags=['立项报告'])
+def generDoc(data: Schemas.GenerModel,request: Request, db: Session = Depends(get_db)):
     file1 = './Files/gener/mod.docx'
     ip=request.client.host
     ip=ip.replace('.', '')
@@ -194,11 +260,14 @@ def generDoc(data: Schemas.GenerModel,request: Request):
     fileurl="http://www.oliven.top:800"+file2[1:]
     xurl = "https://view.xdocin.com/view?src="+fileurl+"&saveable=true&title=项目研发立项报告"
 
+
+    addLog(request, "生成立项报告文档", data, xurl, True, db)
+
     return xurl
 
 # --------- 研发活动情况 --------- 研发活动情况 --------- 研发活动情况 --------- 研发活动情况 --------- 研发活动情况 --------- 研发活动情况
 @app.post("/RDactive", summary='研发情况活动表', tags=['研发情况活动表'])
-def RDactive(fileList:list[Schemas.FileListModel]):
+def RDactive(fileList:list[Schemas.FileListModel],request: Request, db: Session = Depends(get_db)):
     messages = []
 
     for item in fileList:
@@ -275,13 +344,16 @@ def RDactive(fileList:list[Schemas.FileListModel]):
              """}
     )
     try:
-        return Qwen.chat(messages)
+        response = Qwen.chat(messages)
+        addLog(request, "研发情况活动表", fileList, response, True, db)
+        return response
     except Exception as e:
+        addLog(request, "研发情况活动表", fileList, str(e), False, db)
         raise HTTPException(status_code=400, detail=str(e))
 
 # --------- 高新技术产品情况表 --------- 高新技术产品情况表 --------- 高新技术产品情况表 --------- 高新技术产品情况表 --------- 高新技术产品情况表
 @app.post("/highTech", summary='高新技术产品情况表', tags=['高新技术产品情况表'])
-def highTech(fileList:list[Schemas.FileListModel]):
+def highTech(fileList:list[Schemas.FileListModel],request: Request, db: Session = Depends(get_db)):
     messages = [
         {"role": "system",
          "content": f"""
@@ -332,14 +404,17 @@ def highTech(fileList:list[Schemas.FileListModel]):
              """}
     )
     try:
-        return Qwen.chat(messages)
+        response = Qwen.chat(messages)
+        addLog(request, "高新技术产品情况表", fileList, response, True, db)
+        return response
     except Exception as e:
+        addLog(request, "高新技术产品情况表", fileList, str(e), False, db)
         raise HTTPException(status_code=400, detail=str(e))
 
 
 # --------- 成果转化说明 --------- 成果转化说明 --------- 成果转化说明 --------- 成果转化说明 --------- 成果转化说明
 @app.post("/achieve", summary='成果转化说明', tags=['成果转化说明'])
-def achieve(fileList: list[Schemas.FileListModel]):
+def achieve(fileList: list[Schemas.FileListModel],request: Request, db: Session = Depends(get_db)):
     messages = [ {"role": "system",
          "content": f"""
 #Role
@@ -388,15 +463,18 @@ def achieve(fileList: list[Schemas.FileListModel]):
              """}
     )
     try:
-        return Qwen.chat(messages)
+        response = Qwen.chat(messages)
+        addLog(request, "成果转化说明", fileList, response, True, db)
+        return response
     except Exception as e:
+        addLog(request, "成果转化说明", fileList, str(e), False, db)
         raise HTTPException(status_code=400, detail=str(e))
 
 # --------- 企业创新能力评价 --------- 企业创新能力评价 --------- 企业创新能力评价 --------- 企业创新能力评价
 
 # 知识产权对企业竞争力作用
 @app.post("/IPcompetion", summary='知识产权对企业竞争力作用', tags=['企业创新能力评价'])
-def IPcompetion(fileList: list[Schemas.FileListModel]):
+def IPcompetion(fileList: list[Schemas.FileListModel],request: Request, db: Session = Depends(get_db)):
     messages = [{"role": "system",
                  "content": f"""
 #Role
@@ -442,13 +520,16 @@ def IPcompetion(fileList: list[Schemas.FileListModel]):
                  """}
     )
     try:
-        return Qwen.chat(messages)
+        response = Qwen.chat(messages)
+        addLog(request, "知识产权对企业竞争力作用", fileList, response, True, db)
+        return response
     except Exception as e:
+        addLog(request, "知识产权对企业竞争力作用", fileList, str(e), False, db)
         raise HTTPException(status_code=400, detail=str(e))
 
 # 研究开发与技术创新管理组织情况
 @app.post("/manage400", summary='研究开发与技术创新管理组织情况', tags=['企业创新能力评价'])
-def manage400(fileList: list[Schemas.FileListModel]):
+def manage400(fileList: list[Schemas.FileListModel],request: Request, db: Session = Depends(get_db)):
     messages = [ {"role": "system",
          "content": f"""
 #Role
@@ -474,13 +555,16 @@ def manage400(fileList: list[Schemas.FileListModel]):
              """}
     )
     try:
-        return Qwen.chat(messages)
+        response = Qwen.chat(messages)
+        addLog(request, "研究开发与技术创新管理组织情况", fileList, response, True, db)
+        return response
     except Exception as e:
+        addLog(request, "研究开发与技术创新管理组织情况", fileList, str(e), False, db)
         raise HTTPException(status_code=400, detail=str(e))
 
 # 科技成果转化情况
 @app.post("/scienceAchieve", summary='科技成果转化情况', tags=['企业创新能力评价'])
-def scienceAchieve(fileList: list[Schemas.FileListModel]):
+def scienceAchieve(fileList: list[Schemas.FileListModel],request: Request, db: Session = Depends(get_db)):
     messages = [{"role": "system",
                  "content": f"""
 #Role
@@ -525,13 +609,16 @@ def scienceAchieve(fileList: list[Schemas.FileListModel]):
                  """}
     )
     try:
-        return Qwen.chat(messages)
+        response = Qwen.chat(messages)
+        addLog(request, "科技成果转化情况", fileList, response, True, db)
+        return response
     except Exception as e:
+        addLog(request, "科技成果转化情况", fileList, str(e), False, db)
         raise HTTPException(status_code=400, detail=str(e))
 
 # 管理与科技人员
 @app.post("/sciencePeople", summary='管理与科技人员', tags=['企业创新能力评价'])
-def sciencePeople(fileList: list[Schemas.FileListModel]):
+def sciencePeople(fileList: list[Schemas.FileListModel],request: Request, db: Session = Depends(get_db)):
     messages = [{"role": "system",
                  "content": f"""
 #Role
@@ -573,13 +660,16 @@ def sciencePeople(fileList: list[Schemas.FileListModel]):
                  """}
     )
     try:
-        return Qwen.chat(messages)
+        response = Qwen.chat(messages)
+        addLog(request, "管理与科技人员", fileList, response, True, db)
+        return response
     except Exception as e:
+        addLog(request, "管理与科技人员", fileList, str(e), False, db)
         raise HTTPException(status_code=400, detail=str(e))
 
 # --------- 研究开发组织管理水平 --------- 研究开发组织管理水平 --------- 研究开发组织管理水平 --------- 研究开发组织管理水平
 @app.post("/manage1000", summary='研究开发组织管理水平', tags=['研究开发组织管理水平'])
-def manage1000(fileList: list[Schemas.FileListModel]):
+def manage1000(fileList: list[Schemas.FileListModel],request: Request, db: Session = Depends(get_db)):
     messages = [ {"role": "system",
          "content": f"""
 #Role
@@ -610,8 +700,11 @@ def manage1000(fileList: list[Schemas.FileListModel]):
              """}
     )
     try:
-        return Qwen.chat(messages)
+        response = Qwen.chat(messages)
+        addLog(request, "管理与科技人员", fileList, response, True, db)
+        return response
     except Exception as e:
+        addLog(request, "管理与科技人员", fileList, str(e), False, db)
         raise HTTPException(status_code=400, detail=str(e))
 
 #
@@ -639,13 +732,15 @@ def sparkChat(question: str, model: str = "moonshot-v1-8k", temperature: float =
 # 上传文件获取ID
 @app.post("/kimiUpFile", summary='上传文档', tags=['Kimi'])
 def kimiUpFile(file: UploadFile = File(...)):
-    if file.content_type not in ["application/msword",
+    # 获取主要的 MIME 类型，忽略 charset 部分
+    main_content_type = file.content_type.split(';')[0]
+    if main_content_type not in ["application/msword",
                                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                                  "application/pdf", "text/markdown", "text/plain"]:
-        return "文件类型不符"
+        raise HTTPException(status_code=400, detail="文件类型不符")
 
     if file.size > 30 * 1024 * 1024:
-        return "文件过大"
+        raise HTTPException(status_code=400, detail="单个文件不能超过30MB")
 
     try:
         save_path = './test_files/' + file.filename
@@ -677,6 +772,11 @@ def kimiAllFile():
 def kimiDelFile(fileID: str):
     return Kimi.delFile(fileID)
 
+@app.get("/kimiDelFileAll", summary='删除所有文档', tags=['Kimi'])
+def kimiDelFileAll( ):
+    fileList=Kimi.getAllFile()
+    for file in fileList:
+        Kimi.delFile(file.id)
 
 # --------- 通义千问 --------- 通义千问 --------- 通义千问 --------- 通义千问 --------- 通义千问 --------- 通义千问 --------- 通义千问
 
@@ -700,7 +800,7 @@ def qwenUpFile(file: UploadFile = File(...)):
                                  "application/pdf", "text/markdown", "text/plain"]:
         raise HTTPException(status_code=400, detail="文件类型不符")
     if file.size > 30 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="文件过大")
+        raise HTTPException(status_code=400, detail="单个文件不能超过30MB")
 
     save_path = './test_files/' + file.filename
 

@@ -3,9 +3,8 @@
         <div class="title-div">
             <span class="title">上传知识产权资料</span>
         </div>
-
         <upfileView :upType="'知识产权资料'" />
-
+        <el-alert title="每项知识产权上传一份资料即可" type="info" show-icon />
         <div class="title-div">
             <span class="title">知识产权先进性说明</span>
         </div>
@@ -15,34 +14,11 @@
 
             </el-tab-pane>
         </el-tabs>
-
-        <div class="title-div">
-            <span class="title">{{ generType }}</span>
-        </div>
-
-        <div v-if="generContent" class="contentDiv">
-            <el-input v-model="generContent" :autosize="{ minRows: 3 }" type="textarea"  placeholder="Please input" />
-
-            <div class="bottomDiv">
-
-                <el-button type="primary" round @click="clickGener" :loading="isLoading">重新生成</el-button>
-                <el-button type="success" :icon="DocumentCopy" circle @click="onCopy" />
-            </div>
-
-        </div>
-
-        <el-button v-else type="primary" plain @click="clickGener" :loading="isLoading">生成内容</el-button>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue'
-import useClipboard from "vue-clipboard3";
-const { toClipboard } = useClipboard();
-import type { UploadUserFile } from 'element-plus'
-import { DocumentCopy } from '@element-plus/icons-vue'
-
-import { generIPRD } from '@/request/api'
+import type { UploadProps, UploadUserFile } from 'element-plus'
 
 import { useIP } from '@/stores/IP'
 const S = useIP()
@@ -51,65 +27,22 @@ import upfileView from './upfile.vue'
 import advancedView from './advanced.vue'
 
 
-const generContent = ref('')
-const generType = "研发活动专利关联表"
-
-
-let isLoading = ref(false)
-
-// 生成内容
-async function getGener() {
-
-    if (S.F["知识产权资料"].length == 0) {
-        ElMessage.error("请先上传知识产权资料！")
-        // 如果发现文件不齐全，返回一个值，打断函数
-        return false
+function getFileSession(fileType: string) {
+    // 如果已经有数据，就不用重复读
+    if (S.F[fileType].length != 0) {
+        return
     }
-
-    try {
-        const res = await generIPRD(S.F["知识产权资料"]);
-        generContent.value = res.data;
-        ElNotification({
-            title: '生成成功',
-            message: generType + '生成成功！',
-            type: 'success',
-            position: 'bottom-right',
+    const Sfile = sessionStorage.getItem(fileType)
+    if (Sfile) {
+        let SfileJson = JSON.parse(Sfile)
+        // 依次读取，并放入fileList
+        SfileJson.forEach((value: UploadUserFile) => {
+            S.F[fileType].push(value)
         });
-
-        return true
-    } catch (err) {
-        const errMsg = generType + '生成失败，请重试！';
-        ElNotification({
-            title: '生成失败',
-            message: errMsg,
-            type: 'error',
-            position: 'bottom-right',
-        });
-        console.log(err)
-        return false
-
     }
 }
 
-// 点击生成项目背景后
-async function clickGener() {
-    isLoading.value = true
-    await getGener()
-    isLoading.value = false
-}
-
-
-// 点击复制后
-async function onCopy() {
-    try {
-        await toClipboard(generContent.value)
-        ElMessage.success("复制成功！");
-    }
-    catch {
-        ElMessage.error("复制失败");
-    }
-}
-
+getFileSession("公司基本资料")
 
 </script>
 

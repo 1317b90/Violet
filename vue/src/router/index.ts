@@ -62,4 +62,20 @@ const router = createRouter({
   ]
 })
 
+
+router.beforeEach(async (to, from) => {
+  const noLoginList=['login','register']
+
+  if (
+    // 检查用户是否已登录
+    !sessionStorage.getItem('username') &&
+    // 避免无限重定向
+    !noLoginList.includes(String(to.name))
+  ) {
+    // 将用户重定向到登录页面
+    return { name: 'login' }
+  }
+})
+
+
 export default router

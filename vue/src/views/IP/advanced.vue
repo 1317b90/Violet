@@ -42,9 +42,15 @@ let isLoading = ref(false)
 async function clickGener() {
     isLoading.value = true
 
-    // parentFile肯定是存在的 忽略报错
+    // 将知识产权的文件存入,parentFile肯定是存在的 忽略报错
     // @ts-ignore
     let fileList: Object[] = [parentFile]
+    if (S.F["公司基本资料"].length == 0) {
+        ElMessage.error("请先上传公司基本资料！")
+        return false
+    } else {
+        fileList = fileList.concat(S.F["公司基本资料"])
+    }
 
     if (S.F[parentID]) {
         fileList = fileList.concat(S.F[parentID])

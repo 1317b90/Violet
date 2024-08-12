@@ -12,7 +12,7 @@ const service = axios.create({
 //请求拦截
 //就是你请求接口的时候，我会先拦截下来，对你的数据做一个判断，或者携带个token给你
 service.interceptors.request.use((config) => {
-	//必须返回出去，不然请求发不出去
+	config.headers["Authorization"]=sessionStorage.getItem('username')
 	return config
 }, error => {
 	//处理错误请求
@@ -27,10 +27,16 @@ service.interceptors.response.use((res) => {
 	} else {
 		//请求成功
 		return Promise.resolve(res)
+
 	}
 }, (err) => {
-	//处理错误响应
-	return Promise.reject(err)
+	try {
+		return Promise.reject(err.response.data.detail)
+	}
+	catch {
+		console.log(err)
+		return Promise.reject("请重试！")
+	}
 })
 //因为别的地方要用，所以就把实例暴露出去，导出
 export default service

@@ -6,13 +6,13 @@
                 <h1 id="login-title">用户登录</h1>
 
                 <el-input v-model="inputUsername" placeholder="请输入账号" :controls="false" :prefix-icon="User" size="large"
-                    maxlength="11" class="spanClass" />
+                    maxlength="11" />
 
                 <el-input v-model="inputPassword" placeholder="请输入密码" @keyup.enter="clickLogin" type="password"
-                    show-password :prefix-icon="Lock" size="large" class="spanClass" />
+                    show-password :prefix-icon="Lock" size="large" />
 
-                <el-button type="primary" @click="clickLogin" id="loginButton" size="large" class="spanClass"
-                    :loading="isLoading">登 陆</el-button>
+                <el-button type="primary" @click="clickLogin" id="loginButton" size="large" :loading="isLoading">登
+                    陆</el-button>
 
 
                 <div id="login-bottom">
@@ -31,9 +31,12 @@
 import { ref } from 'vue';
 import { User, Lock } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router';
+
+import { login } from '@/request/api'
+
 const router = useRouter()
-const inputUsername = ref("10086")
-const inputPassword = ref("password")
+const inputUsername = ref("")
+const inputPassword = ref("")
 const isLoading = ref(false)
 
 
@@ -41,8 +44,29 @@ function clickForget() {
     ElMessage.warning("我也不知道你密码多少，你自己再好好想想吧")
 }
 
-function clickLogin() {
-    ElMessage.success("还没写完")
+async function clickLogin() {
+
+    if (inputUsername.value == "" || inputPassword.value == "") {
+        ElMessage.error('账号或密码不能为空！')
+    }
+    else {
+        isLoading.value = true
+        await login(inputUsername.value, inputPassword.value)
+            .then(res => {
+                ElMessage.success("登录成功！")
+
+                sessionStorage.setItem('username', inputUsername.value)
+                sessionStorage.setItem('count', res.data.count)
+                sessionStorage.setItem('name', res.data.name)
+                isLoading.value = false
+
+                router.push('item')
+            })
+            .catch(err => {
+                ElMessage.error("登录失败，" + err)
+                isLoading.value = false
+            })
+    }
 }
 
 </script>

@@ -38,7 +38,7 @@ if (isSoft.value) {
 
 
 // 一般都使用千问
-let actionUrl = ref(urlJson.url + "/qwenUpFile")
+let actionUrl = ref(urlJson.url + "/kimiUpFile")
 
 
 // 在上传之前的钩子，返回 false 可以取消上传

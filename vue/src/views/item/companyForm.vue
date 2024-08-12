@@ -1,23 +1,22 @@
 <template>
-    <el-form ref="ruleFormRef" style="max-width: 600px" :model="companyForm" status-icon :rules="rules"
-        label-width="auto">
+    <el-form ref="ruleFormRef" :model="Item.company" status-icon :rules="rules" label-width="auto">
 
-        <el-form-item label="公司名称" prop="name">
-            <el-input v-model="companyForm.name" />
+        <el-form-item label="公司名称" prop="companyName">
+            <el-input v-model="Item.company.companyName" />
         </el-form-item>
 
-        <el-form-item label="公司创建时间" prop="creationTime">
-            <el-date-picker v-model="companyForm.creationTime" type="date" />
+        <el-form-item label="公司创建时间" prop="companyTime">
+            <el-date-picker v-model="Item.company.companyTime" type="date" />
         </el-form-item>
-        <el-form-item label="公司注册资金" prop="registeredCapital">
-            <el-input-number v-model="companyForm.registeredCapital" :min="1" controls-position="right" />
+        <el-form-item label="公司注册资金" prop="companyMoney">
+            <el-input-number v-model.number="Item.company.companyMoney" :min="1" controls-position="right" />
             <span>&nbsp;&nbsp;&nbsp;/万元</span>
         </el-form-item>
-        <el-form-item label="公司经营范围" prop="businessScope">
-            <el-input v-model="companyForm.businessScope" :autosize="{ minRows: 3 }" type="textarea" />
+        <el-form-item label="公司经营范围" prop="companyScope">
+            <el-input v-model="Item.company.companyScope" :autosize="{ minRows: 3 }" type="textarea" />
         </el-form-item>
-        <el-form-item label="公司简介" prop="intro">
-            <el-input v-model="companyForm.intro" :autosize="{ minRows: 3 }" type="textarea" />
+        <el-form-item label="公司简介" prop="companyIntro">
+            <el-input v-model="Item.company.companyIntro" :autosize="{ minRows: 3 }" type="textarea" />
         </el-form-item>
         <el-form-item>
             <div class="bottomDiv">
@@ -34,44 +33,42 @@
 import { reactive, ref } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 
-import { upCompanyForm } from '@/request/api'
+import { setItemCompany, upCompanyForm } from '@/request/api'
+
+import { useitem } from '@/stores/item'
+const Item = useitem()
 
 const ruleFormRef = ref<FormInstance>()
 
-const companyForm: { [key: string]: string } = reactive({
-    name: '',
-    creationTime: '',
-    registeredCapital: '',
-    businessScope: '',
-    intro: ''
-})
 
-// 获取本地数据
-const ScompanyForm = sessionStorage.getItem('companyForm')
-if (ScompanyForm) {
-    let ScompanyFormJson = JSON.parse(ScompanyForm)
-    Object.assign(companyForm, ScompanyFormJson)
+const companyNameV = (rule: any, value: any, callback: any) => {
+    if (value === '' || value === null) {
+        callback(new Error('公司名称不能为空！'))
+    } else {
+        callback()
+    }
 }
 
 
-const creationTimeV = (rule: any, value: any, callback: any) => {
-    if (value === '') {
+
+const companyTimeV = (rule: any, value: any, callback: any) => {
+    if (value === '' || value === null) {
         callback(new Error('公司创建时间不能为空！'))
     } else {
         callback()
     }
 }
 
-const registeredCapitalV = (rule: any, value: any, callback: any) => {
-    if (value === '') {
+const companyMoneyV = (rule: any, value: any, callback: any) => {
+    if (value === '' || value === null) {
         callback(new Error('公司注册资金不能为空！'))
     } else {
         callback()
     }
 }
 
-const businessScopeV = (rule: any, value: any, callback: any) => {
-    if (value === '') {
+const companyScopeV = (rule: any, value: any, callback: any) => {
+    if (value === '' || value === null) {
         callback(new Error('公司经营范围不能为空！'))
     } else {
         callback()
@@ -79,8 +76,8 @@ const businessScopeV = (rule: any, value: any, callback: any) => {
 }
 
 
-const introV = (rule: any, value: any, callback: any) => {
-    if (value === '') {
+const companyIntroV = (rule: any, value: any, callback: any) => {
+    if (value === '' || value === null) {
         callback(new Error('公司简介不能为空！'))
     } else {
         callback()
@@ -88,13 +85,69 @@ const introV = (rule: any, value: any, callback: any) => {
 }
 
 
-const rules = reactive<FormRules<typeof companyForm>>({
-    creationTime: [{ validator: creationTimeV, trigger: 'blur' }],
-    registeredCapital: [{ validator: registeredCapitalV, trigger: 'blur' }],
-    businessScope: [{ validator: businessScopeV, trigger: 'blur' }],
-    intro: [{ validator: introV, trigger: 'blur' }],
+const rules = reactive<FormRules<typeof Item.company>>({
+    companyName: [{ validator: companyNameV, trigger: 'blur' }],
+    companyTime: [{ validator: companyTimeV, trigger: 'blur' }],
+    companyMoney: [{ validator: companyMoneyV, trigger: 'blur' }],
+    companyScope: [{ validator: companyScopeV, trigger: 'blur' }],
+    companyIntro: [{ validator: companyIntroV, trigger: 'blur' }],
 })
 
+
+// 将表单转化为文件保存，并获取kimi的文件id
+async function saveCompanyFile() {
+    // 转为中文名
+    const chinaCompany = {
+        "公司名称": Item.company.companyName,
+        "公司创建时间": Item.company.companyTime,
+        "公司注册资金": Item.company.companyMoney,
+        "公司经营范围": Item.company.companyScope,
+        "公司简介": Item.company.companyIntro
+    }
+    const jsonBase = JSON.stringify(chinaCompany)
+    const blob = new Blob([jsonBase], { type: 'text/plain;charset=utf-8' });
+    const formData = new FormData();
+    const timestamp = Date.now();
+    const fileName = `公司基本资料${timestamp}.txt`;
+
+    // 将Blob对象添加到FormData中
+    // 注意：这个名字应该与服务器期望接收的字段名相匹配
+    formData.append('file', blob, fileName); // 第三个参数是可选的，表示文件名
+
+    await upCompanyForm(formData).then(res => {
+
+        Item.company.companyFile = res.data
+        // 为了形式一致而构建的
+        const saveValue = {
+            "name": "公司基本资料",
+            "percentage": 100,
+            "status": "success",
+            "size": 1314520,
+            "raw": {
+                "uid": 1314520
+            },
+            "uid": 1314520,
+            "response": res.data
+        }
+        const saveFileList = [
+            saveValue
+        ]
+        // 以文件的id等信息存储到本地
+        sessionStorage.setItem('公司基本资料', JSON.stringify(saveFileList))
+        return true
+    }).catch(err => {
+        throw new Error(err);
+    })
+}
+
+// 保存整个表单
+async function saveCompanyForm() {
+    await setItemCompany(Item.company).then(res => {
+        return true
+    }).catch(err => {
+        throw new Error(err);
+    })
+}
 
 
 // 点击保存后
@@ -102,48 +155,14 @@ const submitForm = (formEl: FormInstance | undefined) => {
     if (!formEl) return
     formEl.validate(async (valid) => {
         if (valid) {
-            const jsonBase = JSON.stringify(companyForm)
-
-            // 将表单存储到本地
-            sessionStorage.setItem('companyForm', jsonBase)
-
-            // 将表单构建为文件发送到后端
-            const blob = new Blob([jsonBase], { type: 'text/plain;charset=utf-8' });
-            const formData = new FormData();
-            const timestamp = Date.now();
-            const fileName = `公司基本资料${timestamp}.txt`;
-            // 将Blob对象添加到FormData中
-            // 注意：这个名字应该与服务器期望接收的字段名相匹配
-            formData.append('file', blob, fileName); // 第三个参数是可选的，表示文件名
-            await upCompanyForm(formData).then(res => {
-                // 为了形式一致而构建的
-                const saveValue = {
-                    "name": fileName,
-                    "percentage": 100,
-                    "status": "success",
-                    "size": 1314520,
-                    "raw": {
-                        "uid": 1314520
-                    },
-                    "uid": 1314520,
-                    "response": res.data
-                }
-                const saveFileList = [
-                    saveValue
-                ]
-                // 以文件的id等信息存储到本地
-                sessionStorage.setItem('公司基本资料', JSON.stringify(saveFileList))
-
-                // 保存表单信息
+            try {
+                await saveCompanyFile();
+                await saveCompanyForm();
                 ElMessage.success("保存成功！")
-            }).catch(err => {
-                ElMessage.error("保存失败！")
-                console.log(err)
-            })
 
-
-        } else {
-            ElMessage.error("保存失败！")
+            } catch (err) {
+                ElMessage.error("保存失败，" + err)
+            }
         }
     })
 }

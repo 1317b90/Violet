@@ -1,7 +1,76 @@
 import service from "@/request/index";
 
+// --------- 用户 --------- 用户 --------- 用户 --------- 用户 --------- 用户 --------- 用户
+
+// 登录
+export async function login(username: string, password: string) {
+    return service({
+        url: "login",
+        method: "POST",
+        data: {
+            "username": username,
+            "password": password,
+        }
+    })
+}
 
 
+// --------- 项目 --------- 项目 --------- 项目 --------- 项目 --------- 项目 --------- 项目
+
+// 根据id查询项目
+export async function getItem(id: number) {
+    return service({
+        url: "getItem?id=" + String(id),
+        method: "GET",
+    })
+}
+
+// 新建项目
+export async function addItem(username: string) {
+    return service({
+        url: "addItem?username=" + username,
+        method: "GET",
+    })
+}
+
+// 查询指定用户的所有项目
+export async function getItems_by_user(username: string) {
+    return service({
+        url: "getItems_by_user?username=" + username,
+        method: "GET",
+    })
+}
+
+// 更新项目公司基本资料
+export async function setItemCompany(data: Object) {
+    return service({
+        url: "setItemCompany",
+        method: "POST",
+        data: data
+    })
+}
+
+
+// 删除项目
+export async function delItem(id: number) {
+    return service({
+        url: "delItem?id=" + String(id),
+        method: "GET",
+    })
+}
+
+// 修改项目名称
+
+export async function setItemName(id:number,name:string) {
+    return service({
+        url: "setItemName?id="+String(id)+"&name="+name,
+        method: "GET",
+        
+    })
+}
+
+
+// ------------------------------------
 // 知识产权
 export async function generIPadvanced(fileList: Array<Object>) {
     return service({
@@ -38,7 +107,7 @@ export async function generAPI(fileList: Array<Object>, generType: string) {
 
 // 上传公司基本资料
 export async function upCompanyForm(data: FormData) {
-    return service.post('qwenUpFile', data, {
+    return service.post('kimiUpFile', data, {
         headers: {
             'Content-Type': 'multipart/form-data'
         }

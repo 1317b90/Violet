@@ -3,11 +3,11 @@
     <el-header id="appHeader">
       <el-menu id="appMenu" :default-active="$route.fullPath" mode="horizontal" :ellipsis="false"
         background-color="#031629" text-color="#fff" active-text-color="#fff" :router="true">
-        <el-menu-item >
+        <el-menu-item>
           <img src="@/assets/images/logo_title.png" style="height: 50px;" alt="Logo" class="logo-img">
         </el-menu-item>
         <!-- <el-menu-item index="/">首页</el-menu-item> -->
-        <el-menu-item index="/item">公司基本资料</el-menu-item>
+        <el-menu-item index="/item">项目管理</el-menu-item>
         <el-menu-item index="/IP">知识产权</el-menu-item>
         <el-menu-item index="/setup">立项报告</el-menu-item>
         <el-menu-item index="/RDactivate">研发活动情况表</el-menu-item>
@@ -21,9 +21,9 @@
           <template #title><el-icon>
               <User />
             </el-icon></template>
-          <el-menu-item-group :title="username">
-            <el-menu-item index="/info">资料修改</el-menu-item>
-            <el-menu-item index="/login">退出</el-menu-item>
+          <el-menu-item-group :title="name">
+            <el-menu-item>{{ count }}</el-menu-item>
+            <el-menu-item @click="clickLoginOut">退出</el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
         <el-menu-item index="/login" v-else>登陆</el-menu-item>
@@ -42,9 +42,64 @@
 <script setup lang="ts">
 import { User } from '@element-plus/icons-vue'
 import { RouterLink, RouterView } from 'vue-router'
-const username = sessionStorage.getItem('username')
+import router from './router';
+import { useitem } from '@/stores/item'
+const Item = useitem()
+
+const username = sessionStorage.getItem('username') || ''
+const name = sessionStorage.getItem('name')
+const count = sessionStorage.getItem('count')
+
+import { getItem, getItems_by_user, addItem } from '@/request/api'
+
+// 初始化数据
+async function getData() {
+  // 默认选择的项目id
+  const itemID = localStorage.getItem(username + "itemId")
+
+  // 如果本地存在默认id的情况下：
+  if (itemID) {
+    Item.id = Number(itemID)
+    await getItem(Number(itemID)).then(res => {
+      Object.assign(Item.company, res.data)
+      Item.name = res.data.itemName
+
+      // 为了形式一致而构建的
+      const saveValue = {
+        "name": "公司基本资料",
+        "percentage": 100,
+        "status": "success",
+        "size": 1314520,
+        "raw": {
+          "uid": 1314520
+        },
+        "uid": 1314520,
+        "response": res.data.companyFile
+      }
+      const saveFileList = [
+        saveValue
+      ]
+      // 以文件的id等信息存储到本地
+      sessionStorage.setItem('公司基本资料', JSON.stringify(saveFileList))
+    }
+
+    ).catch(err => {
+      ElMessage.error("项目获取失败，" + err)
+    })
+  }
 
 
+
+}
+
+getData()
+
+
+function clickLoginOut() {
+  sessionStorage.clear()
+  window.location.reload()
+  router.push('login')
+}
 </script>
 
 <style scoped>

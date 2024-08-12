@@ -47,7 +47,7 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { SuccessFilled } from '@element-plus/icons-vue'
+
 
 import type { UploadProps, UploadUserFile } from 'element-plus'
 import { generDoc } from "@/request/api"

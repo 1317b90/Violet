@@ -6,3 +6,5 @@ requests_toolbelt
 openai
 python-docx
 python-multipart
+sqlalchemy
+pymysql
