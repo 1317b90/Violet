@@ -34,6 +34,10 @@ import { useRouter } from 'vue-router';
 
 import { login } from '@/request/api'
 
+
+import { useitem } from '@/stores/item'
+const Item = useitem()
+
 const router = useRouter()
 const inputUsername = ref("")
 const inputPassword = ref("")
@@ -53,11 +57,25 @@ async function clickLogin() {
         isLoading.value = true
         await login(inputUsername.value, inputPassword.value)
             .then(res => {
-                ElMessage.success("登录成功！")
-
+                // 向本地存储username
                 sessionStorage.setItem('username', inputUsername.value)
                 sessionStorage.setItem('count', res.data.count)
                 sessionStorage.setItem('name', res.data.name)
+                Item.isLogin = true
+                Item.user.count = res.data.count
+                Item.user.name = res.data.name
+
+                // 默认选择的项目id
+                const itemID = localStorage.getItem(inputUsername.value + "itemId")
+
+                // 如果本地存在默认id的情况下：
+                if (itemID) {
+                    console.log(itemID)
+                    Item.id = Number(itemID)
+                    Item.getItemFunc()
+                }
+
+                ElMessage.success("登录成功！")
                 isLoading.value = false
 
                 router.push('item')

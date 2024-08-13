@@ -17,12 +17,12 @@
         <el-menu-item index="/manage">研究开发组织管理水平</el-menu-item>
         <div class="flex-grow" />
 
-        <el-sub-menu index="2" v-if="username">
+        <el-sub-menu index="2" v-if="Item.isLogin">
           <template #title><el-icon>
               <User />
             </el-icon></template>
-          <el-menu-item-group :title="name">
-            <el-menu-item>{{ count }}</el-menu-item>
+          <el-menu-item-group :title="Item.user.name">
+            <el-menu-item>{{ Item.user.count }}</el-menu-item>
             <el-menu-item @click="clickLoginOut">退出</el-menu-item>
           </el-menu-item-group>
         </el-sub-menu>
@@ -46,57 +46,18 @@ import router from './router';
 import { useitem } from '@/stores/item'
 const Item = useitem()
 
-const username = sessionStorage.getItem('username') || ''
-const name = sessionStorage.getItem('name')
-const count = sessionStorage.getItem('count')
 
-import { getItem, getItems_by_user, addItem } from '@/request/api'
-
-// 初始化数据
-async function getData() {
-  // 默认选择的项目id
-  const itemID = localStorage.getItem(username + "itemId")
-
-  // 如果本地存在默认id的情况下：
-  if (itemID) {
-    Item.id = Number(itemID)
-    await getItem(Number(itemID)).then(res => {
-      Object.assign(Item.company, res.data)
-      Item.name = res.data.itemName
-
-      // 为了形式一致而构建的
-      const saveValue = {
-        "name": "公司基本资料",
-        "percentage": 100,
-        "status": "success",
-        "size": 1314520,
-        "raw": {
-          "uid": 1314520
-        },
-        "uid": 1314520,
-        "response": res.data.companyFile
-      }
-      const saveFileList = [
-        saveValue
-      ]
-      // 以文件的id等信息存储到本地
-      sessionStorage.setItem('公司基本资料', JSON.stringify(saveFileList))
-    }
-
-    ).catch(err => {
-      ElMessage.error("项目获取失败，" + err)
-    })
-  }
-
-
-
+if (sessionStorage.getItem('username')) {
+  Item.isLogin = true
+  Item.user.count = Number(sessionStorage.getItem('count'))
+  Item.user.name = String(sessionStorage.getItem('name'))
 }
 
-getData()
-
-
 function clickLoginOut() {
+  Item.isLogin = false
+  // 清除缓存
   sessionStorage.clear()
+  // 清除pinia
   window.location.reload()
   router.push('login')
 }

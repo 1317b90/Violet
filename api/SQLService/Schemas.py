@@ -66,21 +66,42 @@ class FileListModel(BaseModel):
     response: str
 
 # 生成内容接收的接口
-class itemSetupParams(BaseModel):
+class setupParams(BaseModel):
     fileList: List[FileListModel]
     generType: str
 
-# 接收生成内容
-class GenerModel(BaseModel):
-    xxx1x: str = Field(..., alias="项目背景")
-    xxx2x: str = Field(..., alias="项目研发的目的和意义")
-    xxx3x: str = Field(..., alias="项目主要内容")
-    xxx4x: str = Field(..., alias="关键技术")
-    xxx5x: str = Field(..., alias="技术创新点")
-    xxx6x: str = Field(..., alias="技术指标")
-    xxx7x: str = Field(..., alias="总体逻辑结构设计")
-    xxx8x: str = Field(..., alias="采用的技术路线")
-    xxx9x: str = Field(..., alias="市场调研")
-    xxx10x: str = Field(..., alias="研发基础")
-    xxx11x: str = Field(..., alias="效益分析")
-    xxx12x: str = Field(..., alias="风险分析")
+# 生成文档的参数（软著）
+class softDocParams(BaseModel):
+    itemBack: str = Field(..., alias="项目背景")
+    itemGoal: str = Field(..., alias="项目研发的目的和意义")
+
+    itemMain: str = Field(..., alias="项目主要内容")
+
+    techKey: str = Field(..., alias="关键技术")
+    techNew: str = Field(..., alias="技术创新点")
+    techIndex: str = Field(..., alias="技术指标")
+    techLogic: str = Field(..., alias="总体逻辑结构设计")
+    techRouter: str = Field(..., alias="采用的技术路线")
+
+    market: str = Field(..., alias="市场调研")
+    RDbase: str = Field(..., alias="研发基础")
+
+    benefit: str = Field(..., alias="效益分析")
+    risk: str = Field(..., alias="风险分析")
+
+    companyName:str=Field(..., alias="公司名称")
+
+# 生成文档的参数（专利）
+class pantentDocParams(BaseModel):
+    itemOverview: str = Field(..., alias="项目概述")
+    itemGoal: str = Field(..., alias="立项目的")
+
+    techKey: str = Field(..., alias="关键技术")
+    techNew: str = Field(..., alias="技术创新点")
+    put: str = Field(..., alias="实施方案")
+
+    yet: str = Field(..., alias="已取得的工作进展")
+    next: str = Field(..., alias="下一步研究计划和任务")
+    done: str = Field(..., alias="项目完成情况")
+
+    companyName: str = Field(..., alias="公司名称")

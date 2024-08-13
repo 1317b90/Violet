@@ -1,3 +1,4 @@
+import os
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request,Depends
 from fastapi.responses import JSONResponse
@@ -16,6 +17,8 @@ import shutil
 import datetime
 
 from docx import Document
+from docx.shared import Pt
+from docx.oxml.ns import qn
 
 """
                _oo0oo_
@@ -91,12 +94,50 @@ def login(data: Schemas.LoginUser, db: Session = Depends(get_db)):
 
 # 创建项目
 @app.get("/addItem", tags=["项目表"], summary="创建项目")
-def addItem(username:str, db: Session = Depends(get_db)):
+def addItem(username:str,db: Session = Depends(get_db)):
     user = Crud.getUser(db, username)
     if user is None:
         raise HTTPException(status_code=404, detail="用户不存在！")
     else:
-        return Crud.addItem(db,username)
+        respone=Crud.addItem(db,username)
+
+        base_path = "./Files"
+        user_path=os.path.join(base_path, username)
+
+        # 1. 创建一个用户的总文件夹（如果没有创建的情况下）
+        if not os.path.exists(base_path):
+            os.makedirs(user_path)
+
+        # 2. 根据项目id创建一个总文件夹
+        item_path = os.path.join(user_path,str(respone.id))
+        os.makedirs(item_path)
+
+        # 3. 批量创建文件夹
+        folders = [
+            'company',
+            'ip',
+            'setup',
+            'sale',
+            'achieve',
+            'people',
+            'manage'
+        ]
+        for folder in folders:
+            folder_path = os.path.join(item_path, folder)
+            os.makedirs(folder_path)
+
+        # 4. 创建ip子文件夹
+        ip_path=os.path.join(item_path, 'ip')
+        folders = [
+            'patent',
+            'soft',
+            'certificate',
+        ]
+        for folder in folders:
+            folder_path = os.path.join(ip_path, folder)
+            os.makedirs(folder_path)
+
+        return respone
 
 # 根据id查询项目
 @app.get("/getItem", tags=["查询项目"], summary="项目表")
@@ -182,24 +223,9 @@ def IPadvanced(fileList:list[Schemas.FileListModel],request: Request, db: Sessio
 
 # -------- 立项报告 -------- 立项报告 -------- 立项报告 -------- 立项报告 -------- 立项报告 -------- 立项报告 -------- 立项报告 -------- 立项报告
 
-@app.post("/itemSetup", summary='立项报告', tags=['立项报告'])
-def itemSetup(data:Schemas.itemSetupParams,request: Request, db: Session = Depends(get_db)):
-    messages = []
-
-    for item in data.fileList:
-        messages.append({
-            "role": "system",
-            # "content": f'fileid://{item.response}',
-            "content": kimiAnalyFile(item.response),
-        }
-    )
-
-    # 本地获取提示词
-    with open("./Prompt/itemSetup.json", 'r', encoding='utf-8') as file:
-        promptJson = json.load(file)
-
-    messages.append(
-        {"role": "user",
+@app.post("/setup", summary='立项报告', tags=['立项报告'])
+def setup(data:Schemas.setupParams,request: Request, db: Session = Depends(get_db)):
+    messages = [{"role": "system",
          "content": f"""
         # Role
         你是一名高新技术认定申请材料撰写专家，精通高新技术企业认定申请的材料撰写技巧，擅长撰写优质的研发活动立项报告书。
@@ -216,8 +242,18 @@ def itemSetup(data:Schemas.itemSetupParams,request: Request, db: Session = Depen
         ### 不要出现知识产权的具体名称。
         ### 直接给出具体内容，不需要开头论述和结尾总结（如“综上所述”、“结论”、“总结”）。
         ### 不用统计字数。
-         """}
+         """}]
+
+    for item in data.fileList:
+        messages.append({
+            "role": "system",
+            "content": kimiAnalyFile(item.response),
+        }
     )
+
+    # 本地获取提示词
+    with open("./Prompt/setup.json", 'r', encoding='utf-8') as file:
+        promptJson = json.load(file)
 
     messages.append(
         {"role": "user",
@@ -226,45 +262,64 @@ def itemSetup(data:Schemas.itemSetupParams,request: Request, db: Session = Depen
 
     try:
         response = Qwen.chat(messages)
-        addLog(request, "立项报告", data.fileList, response, True, db)
+        addLog(request, data.generType, data.fileList, response, True, db)
         return response
     except Exception as e:
-        addLog(request, "立项报告", data.fileList, str(e), False, db)
+        addLog(request, data.generType, data.fileList, str(e), False, db)
         raise HTTPException(status_code=400, detail=str(e))
 
+# 替换文本
+def replace_text_in_paragraph(paragraph, search_text, replace_text):
+    for run in paragraph.runs:
+        if search_text in run.text:
+            run.text = run.text.replace(search_text, replace_text)
 
-# 生成立项报告文档
-@app.post("/generDoc", summary='生成立项报告文档', tags=['立项报告'])
-def generDoc(data: Schemas.GenerModel,request: Request, db: Session = Depends(get_db)):
-    file1 = './Files/gener/mod.docx'
-    ip=request.client.host
-    ip=ip.replace('.', '')
-    file2 = f'./Files/gener/项目研发立项报告{ip}.docx'
+def replace_text_in_docx(docx_path,textDict):
+    doc = Document(docx_path)
+    for key, value in textDict:
+        textMod = "@" + key + "@"
+        for paragraph in doc.paragraphs:
+            if textMod in paragraph.text:
+                replace_text_in_paragraph(paragraph, textMod, value)
+
+                # 补充替换
+                paragraph.text = paragraph.text.replace(textMod, value)
+
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    for paragraph in cell.paragraphs:
+                        if textMod in paragraph.text:
+                            replace_text_in_paragraph(paragraph, textMod, value)
+
+    doc.save(docx_path)
+    fileurl="http://www.oliven.top:800"+docx_path[1:]
+    return  "https://view.xdocin.com/view?src="+fileurl+"&saveable=true&title=项目研发立项报告"
+
+# 生成立项报告文档（软著）
+@app.post("/setupSoft", summary='生成立项报告文档(软著)', tags=['立项报告'])
+def setupSoft(data: Schemas.softDocParams,request: Request, db: Session = Depends(get_db)):
+    file1 = './Files/gener/softMod.docx'
+    file2 = f'./Files/gener/项目研发立项报告{request.headers.get("Authorization")}.docx'
     # 复制并重命名文件
     shutil.copy(file1, file2)
 
-    # 打开文档
-    doc = Document(file2)
-
-    # 便利所有输入数据
-    for key, value in  data.model_dump().items():
-        # 遍历所有段落
-        for para in doc.paragraphs:
-            if key in para.text:
-                # 替换段落中的文本
-                para.text = para.text.replace(key, value)
-
-    # 保存修改后的文档
-    doc.save(file2)
-
-    fileurl="http://www.oliven.top:800"+file2[1:]
-    xurl = "https://view.xdocin.com/view?src="+fileurl+"&saveable=true&title=项目研发立项报告"
-
-
-    addLog(request, "生成立项报告文档", data, xurl, True, db)
-
+    xurl=replace_text_in_docx(file2,data.model_dump().items())
+    addLog(request, "生成立项报告文档(软著)", data, xurl, True, db)
     return xurl
 
+# 生成立项报告文档（专利）
+@app.post("/setupPatent", summary='生成立项报告文档(专利)', tags=['立项报告'])
+def setupPatent(data: Schemas.pantentDocParams,request: Request, db: Session = Depends(get_db)):
+    file1 = './Files/gener/patentMod.docx'
+    file2 = f'./Files/gener/项目研发立项报告{request.headers.get("Authorization")}.docx'
+    # 复制并重命名文件
+    shutil.copy(file1, file2)
+
+    xurl=replace_text_in_docx(file2,data.model_dump().items())
+
+    addLog(request, "生成立项报告文档(专利)", data, xurl, True, db)
+    return xurl
 # --------- 研发活动情况 --------- 研发活动情况 --------- 研发活动情况 --------- 研发活动情况 --------- 研发活动情况 --------- 研发活动情况
 @app.post("/RDactive", summary='研发情况活动表', tags=['研发情况活动表'])
 def RDactive(fileList:list[Schemas.FileListModel],request: Request, db: Session = Depends(get_db)):

@@ -61,11 +61,11 @@ export async function delItem(id: number) {
 
 // 修改项目名称
 
-export async function setItemName(id:number,name:string) {
+export async function setItemName(id: number, name: string) {
     return service({
-        url: "setItemName?id="+String(id)+"&name="+name,
+        url: "setItemName?id=" + String(id) + "&name=" + name,
         method: "GET",
-        
+
     })
 }
 
@@ -89,22 +89,6 @@ export async function generIPRD(fileList: Array<Object>) {
 }
 
 
-// ---------- 立项报告 ---------- 立项报告 ---------- 立项报告 ---------- 立项报告 ---------- 立项报告
-
-
-// 通用生成请求
-export async function generAPI(fileList: Array<Object>, generType: string) {
-    return service({
-        url: "itemSetup",
-        method: "POST",
-        data: {
-            generType: generType,
-            fileList: fileList
-        }
-    })
-}
-
-
 // 上传公司基本资料
 export async function upCompanyForm(data: FormData) {
     return service.post('kimiUpFile', data, {
@@ -115,15 +99,45 @@ export async function upCompanyForm(data: FormData) {
 }
 
 
+// ---------- 立项报告 ---------- 立项报告 ---------- 立项报告 ---------- 立项报告 ---------- 立项报告
 
-// 生成预览
-export async function generDoc(generData: { [key: string]: string }) {
-    console.log(generData)
+
+// 通用生成请求
+export async function generAPI(fileList: Array<Object>, generType: string) {
     return service({
-        url: "generDoc",
+        url: "setup",
         method: "POST",
-        data: generData
+        data: {
+            generType: generType,
+            fileList: fileList
+        }
     })
+}
+
+
+
+// 生成文档
+export async function generDoc(generData: { [key: string]: string }, isSoft: boolean, companyName: string) {
+    const data = { ...generData };  // 浅拷贝
+    data["公司名称"] = companyName;
+
+    // 如果是软著
+    if (isSoft) {
+        return service({
+            url: "setupSoft",
+            method: "POST",
+            data: data
+        })
+    }
+    // 如果是专利
+    else {
+        return service({
+            url: "setupPatent",
+            method: "POST",
+            data: data
+        })
+    }
+
 }
 
 

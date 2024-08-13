@@ -5,7 +5,7 @@ import { generInnovative } from '@/request/api'
 
 // 任务需要的文件
 const generForFile: { [key: string]: string[] } = {
-  "知识产权对企业竞争力作用": ["知识产权资料   ", "公司基本资料"],
+  "知识产权对企业竞争力作用": ["知识产权证书   ", "公司基本资料"],
   "研究开发与技术创新管理组织情况": ["管理制度文件"],
   "科技成果转化情况": ["成果转化材料", "公司基本资料"],
   "管理与科技人员": ["人员情况说明"]
@@ -16,7 +16,7 @@ const generForFile: { [key: string]: string[] } = {
 export const useinnovative = defineStore('innovative', () => {
   // 本地文件列表
   const F: { [key: string]: UploadUserFile[] } = reactive({
-    "知识产权资料   ": [],
+    "知识产权证书   ": [],
     "成果转化材料": [],
     "人员情况说明": [],
     "管理制度文件": [],

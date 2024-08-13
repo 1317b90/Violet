@@ -55,6 +55,9 @@ import { generDoc } from "@/request/api"
 import { usesetup1 } from '@/stores/setup1'
 import { usesetup2 } from '@/stores/setup2'
 
+import { useitem } from '@/stores/item'
+const Item = useitem()
+
 // 根据本地的缓存，判断软著或专利
 // 默认为软著
 const isSoft = ref(JSON.parse(sessionStorage.getItem('isSoft') || 'true'))
@@ -104,6 +107,7 @@ function getFileSession(fileType: string) {
             S.F[fileType].push(value)
         });
     }
+
 }
 
 // 获取生成内容的本地缓存
@@ -185,7 +189,6 @@ async function clickGener() {
         try {
             // 同时发送所有请求，并等待所有请求完成
             const results = await Promise.all(tasks);
-            console.log(results)
             ElMessage.success("所有任务已完成！")
         } catch (error) {
             // 处理其他错误
@@ -220,7 +223,8 @@ async function clickGenerDoc() {
     isGenerDoc.value = true
 
     if (isComplete()) {
-        await generDoc(S.C).then(res => {
+        const companyName = Item.company.companyName || ""
+        await generDoc(S.C, isSoft.value, companyName).then(res => {
             console.log(res)
             isGenerDoc.value = false
             ElMessage.success("生成成功！")

@@ -31,7 +31,8 @@
             </el-card>
 
         </div>
-
+        <!-- {{ Item.company }} -->
+        {{ Item.user }}
     </div>
 </template>
 
@@ -106,35 +107,10 @@ async function clickSetItemName() {
 // 项目选择改变时,根据id查询项目，并更新值
 async function changeItem() {
 
+    // 修改本地默认itemId
     localStorage.setItem(username + "itemId", String(Item.id))
 
-    await getItem(Item.id).then(res => {
-        Object.assign(Item.company, res.data)
-        Item.name = res.data.itemName
-
-        // 为了形式一致而构建的
-        const saveValue = {
-            "name": "公司基本资料",
-            "percentage": 100,
-            "status": "success",
-            "size": 1314520,
-            "raw": {
-                "uid": 1314520
-            },
-            "uid": 1314520,
-            "response": res.data.companyFile
-        }
-        const saveFileList = [
-            saveValue
-        ]
-        // 以文件的id等信息存储到本地
-        sessionStorage.setItem('公司基本资料', JSON.stringify(saveFileList))
-
-    }
-
-    ).catch(err => {
-        ElMessage.error("项目获取失败！" + err)
-    })
+    Item.getItemFunc()
 }
 
 
